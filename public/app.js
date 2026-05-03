@@ -66,7 +66,9 @@ function formatTime(value) {
 
 function saveKnownPosts() {
   const recent = state.posts.slice(0, 100).map((post) => post.no);
-  localStorage.setItem("knownPostNos", JSON.stringify([...new Set([...state.knownNos, ...recent])].slice(0, 200)));
+  const trimmed = [...new Set([...state.knownNos, ...recent])].slice(0, 200);
+  state.knownNos = new Set(trimmed);
+  localStorage.setItem("knownPostNos", JSON.stringify(trimmed));
 }
 
 function saveUnreadPosts() {
@@ -74,6 +76,7 @@ function saveUnreadPosts() {
     .slice(0, 200)
     .map((post) => post.no)
     .filter((no) => state.unreadNos.has(no));
+  state.unreadNos = new Set(visibleUnread);
   localStorage.setItem("unreadPostNos", JSON.stringify(visibleUnread));
 }
 
