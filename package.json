@@ -1,0 +1,16 @@
+{
+  "name": "dcinside-new-post-viewer",
+  "version": "1.0.0",
+  "private": true,
+  "description": "DCInside mini gallery watcher and post/comment viewer",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "better-sqlite3": "^12.9.0"
+  }
+}
