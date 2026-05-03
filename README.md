@@ -52,6 +52,15 @@ $env:GALLERY_ID="dataprocessing"
 npm start
 ```
 
+Docker에서 실행할 때는 외부 접근을 위해 `HOST=0.0.0.0` 으로 설정하는 것을 권장합니다.
+
+예시:
+
+```powershell
+docker build -t dcinside-viewer .
+docker run --rm -p 3000:3000 -e HOST=0.0.0.0 -e PORT=3000 -v ${PWD}\data:/app/data dcinside-viewer
+```
+
 ## 프로젝트 구조
 
 ```text
@@ -75,3 +84,7 @@ server.js 서버 진입점
 ## 현재 상태
 
 이 프로젝트는 단일 Node.js 서버와 정적 프런트엔드로 동작하는 실험용 도구입니다. 현재는 기본 실행과 수동 확인 중심으로 구성되어 있으며, 테스트 코드와 CI는 아직 포함되어 있지 않습니다.
+
+## 배포
+
+Docker와 GitHub Actions 기반 CI/CD 예시는 `docs/deployment.md`에 정리되어 있습니다.

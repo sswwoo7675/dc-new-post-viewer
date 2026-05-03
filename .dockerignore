@@ -1,0 +1,10 @@
+.git
+.github
+node_modules
+npm-debug.log
+server.out.log
+server.err.log
+data
+docs
+tools
+.idea

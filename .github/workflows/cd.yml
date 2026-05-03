@@ -1,0 +1,92 @@
+name: CD
+
+on:
+  workflow_run:
+    workflows:
+      - CI
+    types:
+      - completed
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  docker:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+
+      - name: Set image name
+        run: |
+          echo "IMAGE_NAME=ghcr.io/${GITHUB_REPOSITORY,,}" >> "$GITHUB_ENV"
+          echo "IMAGE_TAG=${{ github.event.workflow_run.head_sha }}" >> "$GITHUB_ENV"
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: |
+            ${{ env.IMAGE_NAME }}:latest
+            ${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Deploy to VPS over SSH
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          port: ${{ secrets.VPS_PORT || '22' }}
+          script: |
+            set -eu
+            mkdir -p "${{ secrets.VPS_APP_DIR }}/data"
+            cd "${{ secrets.VPS_APP_DIR }}"
+            cat > .env <<EOF
+            IMAGE_NAME=${{ env.IMAGE_NAME }}
+            APP_PORT=${{ secrets.APP_PORT || '3000' }}
+            GALLERY_ID=${{ secrets.GALLERY_ID || 'dataprocessing' }}
+            EOF
+            cat > docker-compose.prod.yml <<'EOF'
+            services:
+              app:
+                image: ${IMAGE_NAME}:latest
+                container_name: dcinside-viewer
+                restart: unless-stopped
+                ports:
+                  - "${APP_PORT}:3000"
+                environment:
+                  NODE_ENV: production
+                  HOST: 0.0.0.0
+                  PORT: 3000
+                  GALLERY_ID: ${GALLERY_ID}
+                volumes:
+                  - ./data:/app/data
+                healthcheck:
+                  test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000/healthz').then((r) => { if (!r.ok) process.exit(1); }).catch(() => process.exit(1))"]
+                  interval: 30s
+                  timeout: 5s
+                  retries: 3
+                  start_period: 15s
+            EOF
+            echo "${{ secrets.GHCR_READ_TOKEN }}" | docker login ghcr.io -u "${{ secrets.GHCR_USERNAME }}" --password-stdin
+            docker compose -f docker-compose.prod.yml pull
+            docker compose -f docker-compose.prod.yml up -d
+            docker image prune -f

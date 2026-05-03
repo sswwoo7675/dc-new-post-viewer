@@ -505,6 +505,16 @@ async function getPosts(limit = 50) {
 }
 
 async function handleApi(req, res, url) {
+  if (url.pathname === "/api/health") {
+    sendJson(res, 200, {
+      ok: true,
+      service: "dcinside-new-post-viewer",
+      galleryId: GALLERY_ID,
+      timestamp: new Date().toISOString()
+    });
+    return;
+  }
+
   if (url.pathname === "/api/posts") {
     const limit = Math.max(1, Math.min(100, Number(url.searchParams.get("limit") || 50)));
     const list = await getPosts(limit);
@@ -647,6 +657,15 @@ const server = http.createServer(async (req, res) => {
   const url = new URL(req.url, `http://${req.headers.host}`);
 
   try {
+    if (url.pathname === "/healthz") {
+      sendJson(res, 200, {
+        ok: true,
+        service: "dcinside-new-post-viewer",
+        timestamp: new Date().toISOString()
+      });
+      return;
+    }
+
     if (url.pathname.startsWith("/media/")) {
       await handleMedia(req, res, url);
       return;
