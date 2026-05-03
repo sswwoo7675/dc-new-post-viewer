@@ -88,3 +88,5 @@ server.js 서버 진입점
 ## 배포
 
 Docker와 GitHub Actions 기반 CI/CD 예시는 `docs/deployment.md`에 정리되어 있습니다.
+
+HTTPS와 Nginx 리버스 프록시 적용 절차는 `docs/https.md`에 정리되어 있습니다.

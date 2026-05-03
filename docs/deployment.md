@@ -63,6 +63,8 @@ mkdir -p ~/apps/dactest/data
 
 `host` 네트워크 모드에서는 Docker의 `ports:` 매핑 대신 애플리케이션이 호스트 포트에 직접 바인딩됩니다.
 
+HTTPS 적용 상세 절차는 `docs/https.md`를 참고합니다.
+
 ## 배포 동작 방식
 
 `main` 브랜치에 푸시되면:
