@@ -70,17 +70,16 @@ jobs:
                 image: ${IMAGE_NAME}:latest
                 container_name: dcinside-viewer
                 restart: unless-stopped
-                ports:
-                  - "${APP_PORT}:3000"
+                network_mode: host
                 environment:
                   NODE_ENV: production
                   HOST: 0.0.0.0
-                  PORT: 3000
+                  PORT: ${APP_PORT}
                   GALLERY_ID: ${GALLERY_ID}
                 volumes:
                   - ./data:/app/data
                 healthcheck:
-                  test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000/healthz').then((r) => { if (!r.ok) process.exit(1); }).catch(() => process.exit(1))"]
+                  test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:' + (process.env.PORT || 3000) + '/healthz').then((r) => { if (!r.ok) process.exit(1); }).catch(() => process.exit(1))"]
                   interval: 30s
                   timeout: 5s
                   retries: 3

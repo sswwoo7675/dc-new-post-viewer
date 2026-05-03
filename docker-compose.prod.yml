@@ -3,12 +3,11 @@ services:
     image: ${IMAGE_NAME:-ghcr.io/OWNER/REPO}:latest
     container_name: dcinside-viewer
     restart: unless-stopped
-    ports:
-      - "${APP_PORT:-3000}:3000"
+    network_mode: host
     environment:
       NODE_ENV: production
       HOST: 0.0.0.0
-      PORT: 3000
+      PORT: ${APP_PORT:-3000}
       GALLERY_ID: ${GALLERY_ID:-dataprocessing}
     volumes:
       - ./data:/app/data

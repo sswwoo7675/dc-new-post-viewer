@@ -8,6 +8,7 @@
 2. `main` 브랜치에 푸시되면 Docker 이미지를 GHCR에 업로드합니다.
 3. 같은 워크플로우가 VPS에 SSH로 접속해 `docker compose pull`과 `up -d`를 실행합니다.
 4. SQLite 데이터는 서버의 `data/` 디렉터리에 남겨서 컨테이너 재배포 후에도 유지합니다.
+5. 외부 사이트로 나가는 통신이 Docker bridge에서 막히는 환경을 피하기 위해 운영 컨테이너는 `host` 네트워크를 사용합니다.
 
 ## 저장소에 추가된 파일
 
@@ -60,6 +61,8 @@ mkdir -p ~/apps/dactest/data
 - Nginx: `80`, `443`
 - HTTPS: Let's Encrypt
 
+`host` 네트워크 모드에서는 Docker의 `ports:` 매핑 대신 애플리케이션이 호스트 포트에 직접 바인딩됩니다.
+
 ## 배포 동작 방식
 
 `main` 브랜치에 푸시되면:
@@ -75,3 +78,4 @@ mkdir -p ~/apps/dactest/data
 - 현재 앱은 라벨 저장 API에 인증이 없습니다.
 - 공개 서비스로 운영할 때는 관리자 인증이나 VPN, IP 제한 중 하나를 두는 편이 안전합니다.
 - SQLite는 단일 인스턴스 운영에는 적합하지만 다중 서버 확장에는 맞지 않습니다.
+- 특정 VPS에서는 Docker bridge 네트워크의 outbound가 제한될 수 있습니다. 이런 경우 현재 구성처럼 `network_mode: host`가 더 안정적입니다.
