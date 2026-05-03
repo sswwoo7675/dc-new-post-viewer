@@ -57,8 +57,17 @@ jobs:
           port: ${{ secrets.VPS_PORT || '22' }}
           script: |
             set -eu
-            mkdir -p "${{ secrets.VPS_APP_DIR }}/data"
-            cd "${{ secrets.VPS_APP_DIR }}"
+            app_dir='${{ secrets.VPS_APP_DIR }}'
+            case "$app_dir" in
+              "~")
+                app_dir="$HOME"
+                ;;
+              "~/"*)
+                app_dir="$HOME/${app_dir#~/}"
+                ;;
+            esac
+            mkdir -p "$app_dir/data"
+            cd "$app_dir"
             cat > .env <<EOF
             IMAGE_NAME=${{ env.IMAGE_NAME }}
             APP_PORT=${{ secrets.APP_PORT || '3000' }}
